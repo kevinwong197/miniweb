@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -7,6 +8,7 @@ using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.UI.Popups;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -95,6 +97,39 @@ namespace miniweb
             var deferral = e.SuspendingOperation.GetDeferral();
             //TODO: Save application state and stop any background activity
             deferral.Complete();
+        }
+
+        protected async override void OnActivated(IActivatedEventArgs args)
+        {
+            switch (args.Kind)
+            {
+                case ActivationKind.CommandLineLaunch:
+                    CommandLineActivatedEventArgs cmdLineArgs = args as CommandLineActivatedEventArgs;
+                    CommandLineActivationOperation operation = cmdLineArgs.Operation;
+                    string cmdLineString = operation.Arguments;
+                    string activationPath = operation.CurrentDirectoryPath;
+
+                    Frame rootFrame = Window.Current.Content as Frame;
+                    if (rootFrame == null)
+                    {
+                        rootFrame = new Frame();
+                        Window.Current.Content = rootFrame;
+                    }
+
+                    string[] argz = cmdLineString.Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (argz.Length > 1 && argz[1].Length != 0)
+                    {
+                        string arg1 = argz[1];
+                        rootFrame.Navigate(typeof(MainPage), arg1);
+                    }
+                    else
+                    {
+                        rootFrame.Navigate(typeof(MainPage), "https://google.com");
+                    }
+
+                    Window.Current.Activate();
+                    break;
+            }
         }
     }
 }
